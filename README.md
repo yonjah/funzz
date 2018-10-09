@@ -19,17 +19,9 @@ Like mocha -
 const Hapi = require('hapi');
 const Funzz = require('funzz');
 
-let server;
-
-before(async () => {
-    server = Hapi.server();
-    server.route({ method: 'GET', path: '/test', handler: () => 'ok' });
-    await server.start();
-
-    Funzz(server);
-});
-
-after(() => server.stop());
+const server = Hapi.server();
+server.route({ method: 'GET', path: '/test', handler: () => 'ok' });
+Funzz(server);
 ```
 
 Or Lab -
@@ -38,19 +30,11 @@ const Hapi = require('hapi');
 const Funzz = require('funzz');
 const Lab = require('lab');
 
-let server;
+const { describe, it } = exports.lab = Lab.script();
 
-const { describe, it, before, after } = exports.lab = Lab.script();
-
-before(async () => {
-    server = Hapi.server();
-    server.route({ method: 'GET', path: '/test', handler: () => 'ok' });
-    await server.start();
-
-    Funzz(server, {it, describe});
-});
-
-after(() => server.stop());
+const server = Hapi.server();
+server.route({ method: 'GET', path: '/test', handler: () => 'ok' });
+Funzz(server, { it, describe });
 ```
 
 ## Verifying tests
