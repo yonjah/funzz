@@ -1,0 +1,43 @@
+{
+  "name": "funzz",
+  "version": "0.0.1",
+  "description": "Automatic fuzzer for hapi.js",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/yonjah/funzz.git"
+  },
+  "keywords": [
+    "test",
+    "fuzzing",
+    "fuzzer",
+    "hapi"
+  ],
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "author": "Yoni Jah <yoni.jah@non.co.il>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yonjah/funzz/issues"
+  },
+  "devDependencies": {
+    "code": "^5.2.0",
+    "hapi": "^17.6.0",
+    "lab": "^16.1.0"
+  },
+  "scripts": {
+    "test": "lab -a code",
+    "test-lint": "lab -a code -L",
+    "test-coverage": "lab -a code -r lcov -o coverage/lcov.info"
+  },
+  "dependencies": {
+    "debug": "^4.0.1",
+    "hoek": "^5.0.4",
+    "joi": "^13.7.0",
+    "juzz": "0.0.2"
+  },
+  "peerDependencies": {
+    "hapi": ">=17.0.0"
+  }
+}
