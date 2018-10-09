@@ -345,7 +345,7 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
-        it.skip('should contain valid fuzzing for optional wildcard params', async () => {
+        it('should contain valid fuzzing for optional wildcard params', async () => {
 
             server.route({ method: 'GET', path: '/test-get-params/{id}/{name*}', handler: () => 'ok' });
 
@@ -367,7 +367,7 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
-        it.skip('should contain valid fuzzing for optional wildcard params with length limit', async () => {
+        it('should contain valid fuzzing for optional wildcard params with length limit', async () => {
 
             server.route({ method: 'GET', path: '/test-get-params/{id}/{name*2}', handler: () => 'ok' });
 
@@ -389,7 +389,7 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
-        it.skip('should contain valid fuzzing for optional wildcard params with length limit when validation is included', async () => {
+        it('should contain valid fuzzing for optional wildcard params with length limit when validation is included', async () => {
 
             server.route({ method: 'GET', path: '/test-get-params/{id}/{name*2}', handler: () => 'ok', config: {
                 validate: {
