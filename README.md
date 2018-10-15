@@ -37,6 +37,52 @@ server.route({ method: 'GET', path: '/test', handler: () => 'ok' });
 Funzz(server, { it, describe });
 ```
 
+
+Or you can even try and see that no secrets are leaked in the result.
+Here is a naive example making making sure secret is never leaked -
+```js
+const Hapi = require('hapi');
+const Funzz = require('funzz');
+const Joi = require('joi');
+const Lab = require('lab');
+
+const { describe, it } = exports.lab = Lab.script();
+const secret = Math.random().toString(32); //value that should not be leaked
+
+const server = Hapi.server();
+const code = '007';
+
+server.route({
+    method: 'GET',
+    path: '/guess/{code}',
+    handler(req, res) {
+
+        if (req.params.code === code) {
+            return secret;
+        }
+
+        return Math.random().toString(32);
+    },
+    config: {
+        validate: {
+            params: {
+                code: Joi.string().regex(/\d{3}/)
+            }
+        }
+    }
+});
+
+Funzz(server, {
+    it,
+    describe,
+    permutations: 2500,
+    validResponse: Joi.object({
+        statusCode: Joi.number().integer().less(500),
+        payload: Joi.string().regex(new RegExp(secret), { name: 'secret', invert: true }) // make sure secret value is never leaked in  response payload
+    }).unknown()
+});
+```
+
 ## Verifying tests
 `Funzz` is still a work in progress so you might want to be sure it actually manages to pass your route validations otherwise fuzzing will not have much effect
 
