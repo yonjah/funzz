@@ -469,7 +469,7 @@ describe('Funzz', () => {
 
 
             const error = expect(() => Funzz(server, { automate: false, validateData: true })).to.throw();
-            expect(error.message).to.startWith('child "id" fails because ["id" length must be 4 characters long]');
+            expect(error.message).to.startWith('/test-validateData[get]:\nchild "id" fails because ["id" length must be 4 characters long]');
         });
 
         it('should pass if generated data does pass validation and validateData is on', () => {
