@@ -96,3 +96,7 @@ On the first couple of runs you should set the option `validateData` to true so 
 ## Known issues
 `Funzz` is mostly a small wrapper around [Juzz](https://www.github.com/yonjah/juzz). Juzz is still very unstable.
 if you have any issues where `Funzz` fail to generate a valid schema that will pass the route validation, or if it is not reaching all available data nodes it is most likely an issue with `Juzz`
+
+## Assets Attributions
+This library is using payloads taken from [SecLists](https://github.com/danielmiessler/SecLists) (all sits in ./assets path)
+For Specific attribution see SecLists [CONTRIBUTORS.md](https://github.com/danielmiessler/SecLists/blob/master/CONTRIBUTORS.md)

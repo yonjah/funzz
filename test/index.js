@@ -814,5 +814,86 @@ describe('Funzz', () => {
 
     });
 
+    describe('payloads', () => {
+
+        let server;
+        const options = { automate: false, usePayloads: 'all', permutations: 1 };
+
+        beforeEach(() =>  {
+
+            server = Hapi.server();
+        });
+
+        it('should contain replace string with valid payload', async () => {
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().length(15).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name).to.have.length(15);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should contain replace string with valid payload', async () => {
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().min(10).max(100).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name.length).to.be.at.least(10);
+            expect(data.query.name.length).to.be.at.most(100);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should contain replace string with valid data uri', async () => {
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().dataUri().required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+
+    });
 
 });
