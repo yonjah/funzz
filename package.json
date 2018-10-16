@@ -32,10 +32,10 @@
     "test-coverage": "lab -a code -r lcov -o coverage/lcov.info"
   },
   "dependencies": {
-    "debug": "^4.0.1",
+    "debug": "^4.1.0",
     "hoek": "^5.0.4",
     "joi": "^13.7.0",
-    "juzz": "0.0.2"
+    "juzz": "0.0.4"
   },
   "peerDependencies": {
     "hapi": ">=17.0.0"

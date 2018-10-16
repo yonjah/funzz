@@ -378,11 +378,10 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
-            expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
             expect(data.params.name).to.exist();
-            expect(data.params.name.length).to.be.most(2);
+            expect(data.params.name.split('/')).to.have.length(2);
 
             const response = await Funzz.inject(server, data);
             expect(response.request.url.path).to.not.include('{name*2}');
@@ -391,19 +390,20 @@ describe('Funzz', () => {
 
         it('should contain valid fuzzing for optional wildcard params with length limit when validation is included', async () => {
 
-            server.route({ method: 'GET', path: '/test-get-params/{id}/{name*2}', handler: () => 'ok', config: {
+            server.route({ method: 'GET', path: '/test-get-params/{id}/{name*}', handler: () => 'ok', config: {
                 validate: {
                     params: {
                         id: Joi.number().integer().min(1).max(10).required(),
-                        name: Joi.string().alphanum()
+                        name: Joi.string().max(10).required()
                     }
                 }
             } });
 
+
             const res = Funzz(server, options);
             expect(res).to.have.length(1);
             const data = res[0];
-            expect(data.path).to.be.equal('/test-get-params/{id}/{name*2}');
+            expect(data.path).to.be.equal('/test-get-params/{id}/{name*}');
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
@@ -411,10 +411,10 @@ describe('Funzz', () => {
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
             expect(data.params.name).to.exist();
-            expect(data.params.name.length).to.be.most(2);
+            expect(decodeURIComponent(data.params.name).length).to.be.most(10);
 
             const response = await Funzz.inject(server, data);
-            expect(response.request.url.path).to.not.include('{name*2}');
+            expect(response.request.url.path).to.not.include('{name*}');
             testResponse(response, 200);
         });
 
