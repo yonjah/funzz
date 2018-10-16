@@ -9,7 +9,7 @@ const { expect } = require('code');
 
 // Test shortcuts
 
-const { describe, it, beforeEach, afterEach } = exports.lab = Lab.script();
+const { describe, it, beforeEach } = exports.lab = Lab.script();
 
 
 const testResponse = function testResponse(response, code) {
