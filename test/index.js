@@ -1356,4 +1356,52 @@ describe('Funzz', () => {
 
     });
 
+    describe('params', () => {
+
+        const options = { permutations: 1, validateData: true };
+        let server;
+
+        beforeEach(() =>  {
+
+            server = Hapi.server();
+        });
+
+        it('should correctly generate param with custom validator', () => {
+
+            server.route({ method: 'GET', path: '/test-params/{id}', handler: () => 'ok', config: {
+                validate: {
+                    params: { id: Joi.number().integer().min(1).max(10) }
+                }
+            } });
+            const route = server.table()[0];
+            for (let i = 10; i > 0; i -= 1){
+                const res = Funzz.generateRoute(server, route, options);
+                expect(res).to.have.length(1);
+                expect(res[0].params).to.exist();
+                expect(parseInt(res[0].params.id, 10)).to.not.be.NaN();
+            }
+        });
+
+        it('should correctly generate wildcard param with custom validator', () => {
+
+            server.route({ method: 'GET', path: '/test-params/{id*2}', handler: () => 'ok', config: {
+                validate: {
+                    params: { id: Joi.string().regex(/^\d{1,5}\/\d{1,5}$/) }
+                }
+            } });
+            const route = server.table()[0];
+            for (let i = 10; i > 0; i -= 1){
+                const res = Funzz.generateRoute(server, route, options);
+                expect(res).to.have.length(1);
+                expect(res[0].params).to.exist();
+                expect(res[0].params.id).to.exist();
+                const ids = res[0].params.id.split('/');
+                expect(ids).to.have.length(2);
+                expect(parseInt(ids[0], 10)).to.not.be.NaN();
+                expect(parseInt(ids[1], 10)).to.not.be.NaN();
+            }
+        });
+
+    });
+
 });
