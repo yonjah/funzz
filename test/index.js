@@ -61,21 +61,21 @@ describe('Funzz', () => {
         it('should return fuzzing for all routes', () => {
 
             server.route({ method: 'GET', path: '/test-routes', handler: () => 'ok' });
-            server.route({ method: 'POST', path: '/test-routes2', handler: () => 'ok' });
+            server.route({ method: 'POST', path: '/test-routes', handler: () => 'ok' });
 
             const res = Funzz(server, options);
             expect(res).to.have.length(2);
             expect(res[0].path).to.be.equal('/test-routes');
-            expect(res[1].path).to.be.equal('/test-routes2');
+            expect(res[1].path).to.be.equal('/test-routes');
         });
 
         it('should return fuzzing for all routes with wildcard method', () => {
 
-            server.route({ method: '*', path: '/test-routes', handler: () => 'ok' });
+            server.route({ method: '*', path: '/test-wc-routes', handler: () => 'ok' });
 
             const res = Funzz(server, options);
             expect(res).to.have.length(6);
-            expect(res[0].path).to.be.equal('/test-routes');
+            expect(res[0].path).to.be.equal('/test-wc-routes');
         });
 
         it('should return fuzzing for all routes with multiple methods', () => {
@@ -824,7 +824,7 @@ describe('Funzz', () => {
             server = Hapi.server();
         });
 
-        it('should contain replace string with valid payload', async () => {
+        it('should replace string with valid payload', async () => {
 
             const usePayloads = ['string.noSql'];
             const { string } = LoadFuzzDb(usePayloads);
@@ -852,7 +852,7 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
-        it('should contain replace string with valid payload with length rule', async () => {
+        it('should replace string with valid payload with length rule', async () => {
 
             const usePayloads = ['string.generic'];
             const { string } = LoadFuzzDb(usePayloads);
@@ -883,7 +883,7 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
-        it('should contain replace string with valid payload with min max rules', async () => {
+        it('should replace string with valid payload with min max rules', async () => {
 
             const usePayloads = ['string.generic'];
             const { string } = LoadFuzzDb(usePayloads);
@@ -917,7 +917,7 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
-        it('should contain replace string with valid payload with min = max rules', async () => {
+        it('should replace string with valid payload with min = max rules', async () => {
 
             const usePayloads = ['string.generic'];
             const { string } = LoadFuzzDb(usePayloads);
@@ -1186,6 +1186,173 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
+
+    });
+
+    describe('routeGenerator', () => {
+
+        const options = { permutations: 1 };
+        let server;
+
+        beforeEach(() =>  {
+
+            server = Hapi.server();
+        });
+
+        it('should throw if server is missing or not match expected hapi server methods', () => {
+
+            expect(() => Funzz.generateRoute()).to.throw('server "value" is required');
+            expect(() => Funzz.generateRoute({ notServer: true })).to.throw('server {\n  "notServer": true,\n  \u001b[41m"table"\u001b[0m\u001b[31m [1]: -- missing --\u001b[0m\n}\n\u001b[31m\n[1] "table" is required\u001b[0m');
+        });
+
+        it('should throw if route is missing or not match expected hapi route methods', () => {
+
+            expect(() => Funzz.generateRoute(server)).to.throw('route "value" is required');
+            expect(() => Funzz.generateRoute(server, { method: 'get' })).to.throw('route {\n  "method": "get",\n  \u001b[41m"path"\u001b[0m\u001b[31m [1]: -- missing --\u001b[0m\n}\n\u001b[31m\n[1] "path" is required\u001b[0m');
+            expect(() => Funzz.generateRoute(server, { path: [], method: 'get' })).to.throw('route {\n  "method": "get",\n  "path" \u001b[31m[1]\u001b[0m: []\n}\n\u001b[31m\n[1] "path" must be a string\u001b[0m');
+            expect(() => Funzz.generateRoute(server, { path: '/', method: 'notMethod' })).to.throw('route {\n  "path": "/",\n  "method" \u001b[31m[1]\u001b[0m: "notMethod"\n}\n\u001b[31m\n[1] "method" must be one of [get, post, put, patch, delete, options]\u001b[0m');
+        });
+
+        it('should throw on bad options', () => {
+
+            expect(() => Funzz.generateRoute(server, { path: '/', method: 'get' }, { automate: false, nonexist: 1 })).to.throw('"nonexist" is not allowed');
+        });
+
+        it('should throw if route search fails', () => {
+
+            expect(() => Funzz.generateRoute(server, { path: '/missing', method: 'get' })).to.throw('failed to find hapi route conf from /missing(get)');
+        });
+
+
+        it('should return fuzzing for selected route', () => {
+
+            server.route({ method: 'GET', path: '/test-routes-gen', handler: () => 'ok' });
+            server.route({ method: 'POST', path: '/test-routes-gen', handler: () => 'ok' });
+
+            const route = server.table()[0];
+            const res = Funzz.generateRoute(server, route, options);
+            expect(res).to.have.length(1);
+            expect(res[0].path).to.be.equal(route.path);
+            expect(res[0].method).to.be.equal(route.method);
+        });
+
+        it('should return fuzzing for selected route with params', () => {
+
+            server.route({ method: 'GET', path: '/test-routes-gen-params/{name}', handler: () => 'ok' });
+            server.route({ method: 'POST', path: '/test-routes-gen-params/{name}', handler: () => 'ok' });
+
+            const route = server.match('get', '/test-routes-gen-params/a');
+            const res = Funzz.generateRoute(server, route, options);
+            expect(res).to.have.length(1);
+            expect(res[0].path).to.be.equal(route.path);
+            expect(res[0].method).to.be.equal(route.method);
+        });
+
+        it('should return fuzzing for selected route with optional params', () => {
+
+            server.route({ method: 'GET', path: '/test-routes-gen-params/{name?}', handler: () => 'ok' });
+            server.route({ method: 'POST', path: '/test-routes-gen-params/{name?}', handler: () => 'ok' });
+
+            const route = server.match('post', '/test-routes-gen-params/a');
+            const res = Funzz.generateRoute(server, route, options);
+            expect(res).to.have.length(1);
+            expect(res[0].path).to.be.equal(route.path);
+            expect(res[0].method).to.be.equal(route.method);
+        });
+
+        it('should return fuzzing for selected route with wildcard params', () => {
+
+            server.route({ method: 'GET', path: '/test-routes-gen-params/{name*}', handler: () => 'ok' });
+            server.route({ method: 'POST', path: '/test-routes-gen-params/{name*}', handler: () => 'ok' });
+
+            const route = server.match('get', '/test-routes-gen-params/a/b/c');
+            const res = Funzz.generateRoute(server, route, options);
+            expect(res).to.have.length(1);
+            expect(res[0].path).to.be.equal(route.path);
+            expect(res[0].method).to.be.equal(route.method);
+        });
+
+        it('should replace string with valid payload', () => {
+
+            const usePayloads = ['string.noSql'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const payloads =  Object.keys(string).reduce((arr, len) => arr.concat(string[len]), []);
+            const pOptions = { automate: false, usePayloads, permutations: 1 };
+            server.route({
+                method: 'GET',
+                path: '/test-routes-gen-params-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().required() }
+                    }
+                }
+            });
+
+            const route = server.match('get', '/test-routes-gen-params-payload');
+            const res = Funzz.generateRoute(server, route, pOptions);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(payloads).to.include(data.query.name);
+        });
+
+        it('should inject to server when automate is true', async () => {
+
+            server.route({
+                method: 'GET',
+                path: '/test-route-gen-automate',
+                handler: () => 'ok',
+                config: { validate: { query: { ids: Joi.array().single().items(Joi.number().integer().min(2).max(10)).min(1).required() } } }
+            });
+            let promise;
+
+            const rOptions = {
+                automate: true,
+                permutations: 1,
+                it: (title, func) => {
+
+                    promise = func();
+                },
+                describe: (title, func) => func()
+            };
+
+            const route = server.match('get', '/test-route-gen-automate');
+            Funzz.generateRoute(server, route, rOptions);
+            expect(promise).to.exist();
+
+            await promise;
+        });
+
+
+    });
+
+    describe('inject', () => {
+
+        const server = Hapi.server();
+        server.route({ method: 'GET', path: '/test-inject', handler: () => 'ok' });
+
+        it('should allow replace of injected data', async () => {
+
+            const res = Funzz(server, { automate: false, permutations: 1 });
+            expect(res).to.have.length(1);
+            const record = res[0];
+            const response = await Funzz.inject(server, record, (rec, data) => {
+
+                expect(rec).to.be.equal(record);
+                expect(data.url).to.startWith('/test-inject');
+                expect(data.method).to.be.equal('get');
+
+                return {
+                    url : '/not_exist',
+                    method: 'get'
+                };
+            });
+
+            testResponse(response, 404);
+        });
 
     });
 

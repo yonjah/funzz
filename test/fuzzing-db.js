@@ -48,6 +48,13 @@ describe('Fuzzing-DB', () => {
             expect(payloads2.file).to.exist();
             expect(payloads2.file['zip-bomb.zip']).to.not.exist();
         });
+
+        it('should return all data', () => {
+
+            const payloads = LoadFuzzDb(['all']);
+            expect(payloads.string).to.exist();
+            expect(payloads.file).to.exist();
+        });
     });
 
 
