@@ -1,6 +1,6 @@
 {
   "name": "funzz",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Automatic fuzzer for hapi.js",
   "main": "lib/index.js",
   "repository": {
