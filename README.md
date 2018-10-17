@@ -121,9 +121,9 @@ but you don't have to call server.start
 
 Inject a specific record into the server
 
-### Funzz.generateRoute(route, options) => Array<record>
+### Funzz.generateRoute(server, route, options) => Array<record>
 Create a list of injectable records for specific route
-#### `options` - see Funzz method options with the exception that automate is not available
+#### `options` - see Funzz method options with the exception that automate will default to false
 
 ## Known issues
 `Funzz` is mostly a small wrapper around [Juzz](https://www.github.com/yonjah/juzz). Juzz is still very unstable.
