@@ -100,13 +100,21 @@ but you don't have to call server.start
 #### `options` - object with optional options
 
 **automate**: automate the test if set to false will only return records array but will not actually run the test _default(true),_
+
 **validateData**: if true will use the validation schema to assert the data and will throw an error if data is not valid  _default(false),_
+
 **permutations**: how many records to create for each route _default(10),_
+
 **validResponse**: Joi schema to validate the response _default(Joi.object({ statusCode: **Joi**.number().integer().less(500) }).unknown())_
+
 **juzzOptions**: Options to be passed directly to [Juzz](https://github.com/yonjah/juzz) _default({})_
+
 **usePayloads**: array of payloads to be loaded from assets Fuzz db files `['all', 'string.all', 'file.all', 'string.generic', 'string.sql', 'string.noSql', 'string.JSON', 'string.XSS', 'string.URI', 'string.userAgent', 'file.image', 'file.zip']` _default([])_
+
 **injectReplace**: function to allow you manipulate data before it is injected to the server _default((record, data) => data)_
+
 **it**: test suite `it` function required when automate is `true` _default(global.it),_
+
 **describe**: test suite `describe` function required when automate is `true` _default(global.describe)_
 
 ### Funzz.inject(server, record, replace) => response
