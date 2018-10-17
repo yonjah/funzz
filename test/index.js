@@ -8,8 +8,6 @@ const Hapi       = require('hapi');
 const Joi        = require('joi');
 const { expect } = require('code');
 
-const chance     = new (require('chance'))();
-
 // Test shortcuts
 
 const { describe, it, beforeEach } = exports.lab = Lab.script();
