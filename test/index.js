@@ -3,9 +3,12 @@
 // Load modules
 const Lab        = require('lab');
 const Funzz      = require('../lib');
+const LoadFuzzDb = require('../lib/fuzzing-db');
 const Hapi       = require('hapi');
 const Joi        = require('joi');
 const { expect } = require('code');
+
+const chance     = new (require('chance'))();
 
 // Test shortcuts
 
@@ -817,7 +820,6 @@ describe('Funzz', () => {
     describe('payloads', () => {
 
         let server;
-        const options = { automate: false, usePayloads: 'all', permutations: 1 };
 
         beforeEach(() =>  {
 
@@ -826,13 +828,18 @@ describe('Funzz', () => {
 
         it('should contain replace string with valid payload', async () => {
 
+            const usePayloads = ['string.noSql'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const payloads =  Object.keys(string).reduce((arr, len) => arr.concat(string[len]), []);
+            const options = { automate: false, usePayloads, permutations: 1 };
             server.route({
                 method: 'GET',
                 path: '/test-string-payload',
                 handler: () => 'ok',
                 config: {
                     validate: {
-                        query: { name: Joi.string().length(15).required() }
+                        query: { name: Joi.string().required() }
                     }
                 }
             });
@@ -842,20 +849,27 @@ describe('Funzz', () => {
             const data = res[0];
             expect(data.query).to.exist();
             expect(data.query.name).to.exist();
-            expect(data.query.name).to.have.length(15);
+            expect(payloads).to.include(data.query.name);
             const response = await Funzz.inject(server, data);
             testResponse(response, 200);
         });
 
-        it('should contain replace string with valid payload', async () => {
+        it('should contain replace string with valid payload with length rule', async () => {
 
+            const usePayloads = ['string.generic'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+
+            const len = 15;
+            const payloads =  string[len];
+            const options = { automate: false, usePayloads, permutations: 1 };
             server.route({
                 method: 'GET',
                 path: '/test-string-payload',
                 handler: () => 'ok',
                 config: {
                     validate: {
-                        query: { name: Joi.string().min(10).max(100).required() }
+                        query: { name: Joi.string().length(len).required() }
                     }
                 }
             });
@@ -865,13 +879,22 @@ describe('Funzz', () => {
             const data = res[0];
             expect(data.query).to.exist();
             expect(data.query.name).to.exist();
-            expect(data.query.name.length).to.be.at.least(10);
-            expect(data.query.name.length).to.be.at.most(100);
+            expect(data.query.name).to.have.length(len);
+            expect(payloads).to.include(data.query.name);
             const response = await Funzz.inject(server, data);
             testResponse(response, 200);
         });
 
-        it('should contain replace string with valid data uri', async () => {
+        it('should contain replace string with valid payload with min max rules', async () => {
+
+            const usePayloads = ['string.generic'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+
+            const minLen = 10;
+            const maxLen = 11;
+            const payloads =  string[minLen].concat(string[maxLen]);
+            const options = { automate: false, usePayloads, permutations: 1 };
 
             server.route({
                 method: 'GET',
@@ -879,7 +902,7 @@ describe('Funzz', () => {
                 handler: () => 'ok',
                 config: {
                     validate: {
-                        query: { name: Joi.string().dataUri().required() }
+                        query: { name: Joi.string().min(minLen).max(maxLen).required() }
                     }
                 }
             });
@@ -889,6 +912,278 @@ describe('Funzz', () => {
             const data = res[0];
             expect(data.query).to.exist();
             expect(data.query.name).to.exist();
+            expect(data.query.name.length).to.be.at.least(minLen);
+            expect(data.query.name.length).to.be.at.most(maxLen);
+            expect(payloads).to.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should contain replace string with valid payload with min = max rules', async () => {
+
+            const usePayloads = ['string.generic'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+
+            const len = 10;
+            const payloads =  string[len];
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().min(len).max(len).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name.length).to.be.equal(len);
+            expect(payloads).to.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should replace string if min is smaller than available strings', async () => {
+
+            const usePayloads = ['string.URI'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const minLen = 114;
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().min(minLen).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name.length).to.be.at.least(minLen);
+            expect(Object.keys(string).reduce((payloads, len) => {
+
+                if (len >= minLen) {
+                    payloads = payloads.concat(string[len]);
+                }
+                else {
+                    expect(string[len]).to.not.include(data.query.name);
+                }
+
+                return payloads;
+            }, [])).to.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+
+        it('should not replace string if min is larger than available strings', async () => {
+
+            const usePayloads = ['string.URI'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const minLen = 500;
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().min(minLen).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name.length).to.be.at.least(minLen);
+            Object.keys(string).forEach((len) => expect(string[len]).to.not.include(data.query.name));
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should replace string if max is bigger than available strings', async () => {
+
+            const usePayloads = ['string.URI'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const maxLen = 90;
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().max(maxLen).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name.length).to.be.at.most(maxLen);
+            expect(Object.keys(string).reduce((payloads, len) => {
+
+                if (maxLen >= len) {
+                    payloads = payloads.concat(string[len]);
+                }
+                else {
+                    expect(string[len]).to.not.include(data.query.name);
+                }
+
+                return payloads;
+            }, [])).to.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+
+        it('should not replace string if max is smaller than available strings', async () => {
+
+            const usePayloads = ['string.URI'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const maxLen = 50;
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().max(maxLen).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name.length).to.be.at.most(maxLen);
+            Object.keys(string).forEach((len) => expect(string[len]).to.not.include(data.query.name));
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should replace string with valid data uri', async () => {
+
+            const usePayloads = ['file.zip'];
+            const { file } = LoadFuzzDb(usePayloads);
+            const zipFile = file['zip-bomb.zip'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { file: Joi.string().dataUri().required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.file).to.exist();
+            expect(data.query.file).to.be.equal(`data:${zipFile.mime};base64,${zipFile.data.toString('base64')}`);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should replace binary data with valid file data', async () => {
+
+            const usePayloads = ['file.zip'];
+            const { file } = LoadFuzzDb(usePayloads);
+            const zipFile = file['zip-bomb.zip'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { file: Joi.binary().required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.file).to.exist();
+            expect(data.query.file).to.be.equal(zipFile.data);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should call user provided replace method with payload', async () => {
+
+            const usePayloads = ['string.generic'];
+            const { string } = LoadFuzzDb(usePayloads);
+            const len = 15;
+            const fakeRes = 'fakeRes' + Math.random().toString(16).substring(0, 8);
+            const replace = function (res, desc) {
+
+                if (desc.type === 'string') {
+                    expect(string[len]).to.include(res);
+                    return fakeRes;
+                }
+
+                return res;
+            };
+
+            const options = { automate: false, usePayloads, permutations: 1, juzzOptions: { replace } };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().length(len).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name).to.be.equal(fakeRes);
             const response = await Funzz.inject(server, data);
             testResponse(response, 200);
         });
