@@ -339,12 +339,41 @@ describe('Funzz', () => {
             expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
-            expect(data.params.action).to.exist();
 
             const response = await Funzz.inject(server, data);
             expect(response.request.url.path).to.not.include('{action?}');
             testResponse(response, 200);
         });
+
+        it('should contain valid fuzzing for forbidden optional params', async () => {
+
+            server.route({ method: 'GET', path: '/test-get-params/{id}/{action?}', handler: () => 'ok', config: {
+                validate: {
+                    params: {
+                        id: Joi.string().required(),
+                        action: Joi.any().forbidden()
+                    }
+                }
+            } });
+
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.path).to.be.equal('/test-get-params/{id}/{action?}');
+            expect(data.method).to.be.equal('get');
+            expect(data.headers).to.not.exist();
+            expect(data.payload).to.not.exist();
+            expect(data.query).to.exist();
+            expect(data.params).to.exist();
+            expect(data.params.id).to.exist();
+            expect(data.params.action).to.not.exist();
+
+            const response = await Funzz.inject(server, data);
+            expect(response.request.url.path).to.not.include('{action?}');
+            testResponse(response, 200);
+        });
+
 
         it('should contain valid fuzzing for optional wildcard params', async () => {
 
@@ -361,7 +390,6 @@ describe('Funzz', () => {
             expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
-            expect(data.params.name).to.exist();
 
             const response = await Funzz.inject(server, data);
             expect(response.request.url.path).to.not.include('{name*}');
@@ -989,6 +1017,137 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
+        it('should find the correct string if calculated length does not hold a valid string (length > min available string)', async () => {
+
+            const usePayloads = ['string.URI'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const minLen = 114;
+            const maxLen = 495;
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.array().items(Joi.string().min(minLen).max(maxLen).required()).length(10).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.be.array();
+            expect(data.query.name.length).to.be.equal(10);
+            data.query.name.forEach((name, i) => {
+
+                expect(name.length, `name at ${i}: ${name}`).to.be.least(minLen);
+                expect(name.length, `name at ${i}: ${name}`).to.be.most(maxLen);
+            });
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should find the correct string if calculated length does not hold a valid string (length < max available string)', async () => {
+
+            const usePayloads = ['string.URI'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const minLen = 115;
+            const maxLen = 496;
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.array().items(Joi.string().min(minLen).max(maxLen).required()).length(10).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.be.array();
+            expect(data.query.name.length).to.be.equal(10);
+            data.query.name.forEach((name, i) => {
+
+                expect(name.length, `name at ${i}: ${name}`).to.be.least(minLen);
+                expect(name.length, `name at ${i}: ${name}`).to.be.most(maxLen);
+            });
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should not replace string if min and max are not in available range', async () => {
+
+            const usePayloads = ['string.URI'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const minLen = 120;
+            const maxLen = 150;
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().min(minLen).max(maxLen).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name.length).to.be.at.least(minLen);
+            expect(data.query.name.length).to.be.at.most(maxLen);
+            Object.keys(string).forEach((len) => expect(string[len]).to.not.include(data.query.name));
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should not replace string if length is not in available range', async () => {
+
+            const usePayloads = ['string.URI'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const length = 120;
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().length(length).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name.length).to.be.equal(length);
+            Object.keys(string).forEach((len) => expect(string[len]).to.not.include(data.query.name));
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
 
         it('should not replace string if min is larger than available strings', async () => {
 
@@ -1380,6 +1539,20 @@ describe('Funzz', () => {
                 expect(res[0].params).to.exist();
                 expect(parseInt(res[0].params.id, 10)).to.not.be.NaN();
             }
+        });
+
+        it('should correctly generate optional param with no value custom validator', () => {
+
+            server.route({ method: 'GET', path: '/test-params/{id?}', handler: () => 'ok', config: {
+                validate: {
+                    params: { id: Joi.number().integer().min(1).max(10).forbidden() }
+                }
+            } });
+            const route = server.table()[0];
+            const res = Funzz.generateRoute(server, route, options);
+            expect(res).to.have.length(1);
+            expect(res[0].params).to.exist();
+            expect(res[0].params.id).to.not.exist();
         });
 
         it('should correctly generate wildcard param with custom validator', () => {
