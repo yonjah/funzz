@@ -1043,10 +1043,24 @@ describe('Funzz', () => {
             expect(data.query).to.exist();
             expect(data.query.name).to.be.array();
             expect(data.query.name.length).to.be.equal(10);
+            const strings = Object.keys(string).reduce((obj, len) => {
+
+                if (len >= minLen && len <= maxLen) {
+                    obj.valid = obj.valid.concat(string[len]);
+                }
+                else {
+                    obj.invalid = obj.invalid.concat(string[len]);
+                }
+
+                return obj;
+            }, { valid: [], invalid: [] });
+
             data.query.name.forEach((name, i) => {
 
                 expect(name.length, `name at ${i}: ${name}`).to.be.least(minLen);
                 expect(name.length, `name at ${i}: ${name}`).to.be.most(maxLen);
+                expect(strings.invalid).to.not.include(name);
+                expect(strings.valid).to.include(name);
             });
             const response = await Funzz.inject(server, data);
             testResponse(response, 200);
@@ -1078,10 +1092,23 @@ describe('Funzz', () => {
             expect(data.query).to.exist();
             expect(data.query.name).to.be.array();
             expect(data.query.name.length).to.be.equal(10);
+            const strings = Object.keys(string).reduce((obj, len) => {
+
+                if (len >= minLen && len <= maxLen) {
+                    obj.valid = obj.valid.concat(string[len]);
+                }
+                else {
+                    obj.invalid = obj.invalid.concat(string[len]);
+                }
+
+                return obj;
+            }, { valid: [], invalid: [] });
             data.query.name.forEach((name, i) => {
 
                 expect(name.length, `name at ${i}: ${name}`).to.be.least(minLen);
                 expect(name.length, `name at ${i}: ${name}`).to.be.most(maxLen);
+                expect(strings.invalid).to.not.include(name);
+                expect(strings.valid).to.include(name);
             });
             const response = await Funzz.inject(server, data);
             testResponse(response, 200);
