@@ -1304,6 +1304,152 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
+        it('should not replace string if only hex values are allowed', async () => {
+
+            const usePayloads = ['string.URI'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+            const { string } = LoadFuzzDb(usePayloads);
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().hex().required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            Object.keys(string).forEach((len) => expect(string[len]).to.not.include(data.query.name));
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should not replace string if regex matching payload is not available', async () => {
+
+            const usePayloads = ['string.userAgent'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+            const { string } = LoadFuzzDb(usePayloads);
+            const regex = /^[a-d]{10}$/;
+            const length = 10;
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().regex(regex).length(length).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name).to.match(regex);
+            expect(string[length]).to.not.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should replace string if regex matching payload is available and can find one with available trials', async () => {
+
+            const usePayloads = ['string.userAgent'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+            const { string } = LoadFuzzDb(usePayloads);
+            const regex = /^[A-Za-z]+/;
+            const length = 10;
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().regex(regex).length(length).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name).to.match(regex);
+            expect(string[length]).to.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should not replace string if inverted regex matching payload is not available', async () => {
+
+            const usePayloads = ['string.userAgent'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+            const { string } = LoadFuzzDb(usePayloads);
+            const regex = /^[a-zA-Z0-9./ _-]{10}$/;
+            const length = 10;
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().regex(regex, { invert: true }).length(length).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name).to.not.match(regex);
+            expect(string[length]).to.not.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should replace string if invert regex matching payload is available and can find one with available trials', async () => {
+
+            const usePayloads = ['string.userAgent'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+            const { string } = LoadFuzzDb(usePayloads);
+            const regex = /^Web/;
+            const length = 10;
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().regex(regex, { invert: true }).length(length).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(data.query.name).to.not.match(regex);
+            expect(string[length]).to.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
 
         it('should replace string with valid data uri', async () => {
 
