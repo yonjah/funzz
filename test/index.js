@@ -1277,6 +1277,34 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
+        it('should not replace string if only specific values are allowed', async () => {
+
+            const usePayloads = ['string.URI'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+            const validValues = ['abc', 'xyz'];
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().valid(validValues).required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(validValues).to.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+
         it('should replace string with valid data uri', async () => {
 
             const usePayloads = ['file.zip'];
