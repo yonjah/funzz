@@ -1479,6 +1479,57 @@ describe('Funzz', () => {
             testResponse(response, 200);
         });
 
+        it('should not replace string if payload string is not available', async () => {
+
+            const usePayloads = ['file.zip'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should not replace string with valid data uri if file payload is not available', async () => {
+
+            const usePayloads = ['string.URI'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { uri: Joi.string().dataUri().required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.uri).to.exist();
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+
         it('should replace binary data with valid file data', async () => {
 
             const usePayloads = ['file.zip'];
@@ -1506,6 +1557,32 @@ describe('Funzz', () => {
             const response = await Funzz.inject(server, data);
             testResponse(response, 200);
         });
+
+        it('should not replace binary data if file is not available', async () => {
+
+            const usePayloads = ['string.URI'];
+            const options = { automate: false, usePayloads, permutations: 1 };
+
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { file: Joi.binary().required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.file).to.exist();
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
 
         it('should call user provided replace method with payload', async () => {
 
