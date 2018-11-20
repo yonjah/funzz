@@ -35,7 +35,7 @@
     "chance": "^1.0.16",
     "debug": "^4.1.0",
     "joi": "^14.0.1",
-    "juzz": "0.0.5"
+    "juzz": "0.1.0"
   },
   "peerDependencies": {
     "hapi": ">=17.0.0"
