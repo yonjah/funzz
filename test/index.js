@@ -341,7 +341,8 @@ describe('Funzz', () => {
             expect(data.params.id).to.exist();
 
             const response = await Funzz.inject(server, data);
-            expect(response.request.url.path).to.not.include('{action?}');
+
+            expect(response.request.url.pathname).to.not.include('{action?}');
             testResponse(response, 200);
         });
 
@@ -370,7 +371,7 @@ describe('Funzz', () => {
             expect(data.params.action).to.not.exist();
 
             const response = await Funzz.inject(server, data);
-            expect(response.request.url.path).to.not.include('{action?}');
+            expect(response.request.url.pathname).to.not.include('{action?}');
             testResponse(response, 200);
         });
 
@@ -392,7 +393,7 @@ describe('Funzz', () => {
             expect(data.params.id).to.exist();
 
             const response = await Funzz.inject(server, data);
-            expect(response.request.url.path).to.not.include('{name*}');
+            expect(response.request.url.pathname).to.not.include('{name*}');
             testResponse(response, 200);
         });
 
@@ -413,7 +414,7 @@ describe('Funzz', () => {
             expect(data.params.name.split('/')).to.have.length(2);
 
             const response = await Funzz.inject(server, data);
-            expect(response.request.url.path).to.not.include('{name*2}');
+            expect(response.request.url.pathname).to.not.include('{name*2}');
             testResponse(response, 200);
         });
 
@@ -443,7 +444,7 @@ describe('Funzz', () => {
             expect(decodeURIComponent(data.params.name).length).to.be.most(10);
 
             const response = await Funzz.inject(server, data);
-            expect(response.request.url.path).to.not.include('{name*}');
+            expect(response.request.url.pathname).to.not.include('{name*}');
             testResponse(response, 200);
         });
 
