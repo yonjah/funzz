@@ -109,6 +109,7 @@ describe('Funzz', () => {
             expect(data.path).to.be.equal('/test-get');
             expect(data.method).to.be.equal('get');
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.params).to.not.exist();
             expect(data.headers).to.not.exist();
             const response = await Funzz.inject(server, data);
@@ -125,6 +126,7 @@ describe('Funzz', () => {
             expect(data.path).to.be.equal('/test-get');
             expect(data.method).to.be.equal('get');
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.params).to.not.exist();
             expect(data.headers).to.not.exist();
             expect(data.query).to.be.empty();
@@ -141,6 +143,7 @@ describe('Funzz', () => {
             expect(data.path).to.be.equal('/test-get');
             expect(data.method).to.be.equal('get');
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.params).to.not.exist();
             expect(data.headers).to.not.exist();
             const response = await Funzz.inject(server, data);
@@ -157,6 +160,7 @@ describe('Funzz', () => {
             expect(data.path).to.be.equal('/test-get');
             expect(data.method).to.be.equal('get');
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.params).to.not.exist();
             expect(data.headers).to.not.exist();
             expect(data.query).to.exist();
@@ -272,6 +276,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
@@ -291,6 +296,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
@@ -315,6 +321,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
@@ -336,6 +343,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
@@ -365,6 +373,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
@@ -388,6 +397,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
@@ -408,6 +418,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
             expect(data.params.name).to.exist();
@@ -437,6 +448,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.headers).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.query).to.exist();
             expect(data.params).to.exist();
             expect(data.params.id).to.exist();
@@ -445,6 +457,93 @@ describe('Funzz', () => {
 
             const response = await Funzz.inject(server, data);
             expect(response.request.url.pathname).to.not.include('{name*}');
+            testResponse(response, 200);
+        });
+
+        it('should not contain cookies fuzzing unless explicitly set', () => {
+
+            server.route({ method: 'GET', path: '/test-get-cookies', handler: () => 'ok' });
+            server.route({ method: 'GET', path: '/test-get-all-cookies', handler: () => 'ok', config: { validate: { state: true } } });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(2);
+            res.forEach((data) => {
+
+                expect(data.params).to.not.exist();
+                expect(data.payload).to.not.exist();
+                expect(data.query).to.exist();
+                expect(data.headers).to.not.exist();
+                expect(data.state).to.not.exist();
+            });
+        });
+
+        it('should contain valid fuzzing for cookies by state validation for route', async () => {
+
+            server.route({ method: 'GET', path: '/test-get-cookies', handler: () => 'ok', config: {
+                validate: {
+                    state: {
+                        'sid': Joi.string().required()
+                    }
+                }
+            } });
+
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.path).to.be.equal('/test-get-cookies');
+            expect(data.method).to.be.equal('get');
+            expect(data.params).to.not.exist();
+            expect(data.payload).to.not.exist();
+            expect(data.query).to.exist();
+            expect(data.state).to.exist();
+            expect(data.state).to.have.length(1);
+            expect(data.state.sid).to.exist();
+
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should inject cookies set by server.state', async () => {
+
+            server.route({ method: 'GET', path: '/test-get-cookies', handler: () => 'ok' });
+
+            server.state('cookie');
+
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.path).to.be.equal('/test-get-cookies');
+            expect(data.method).to.be.equal('get');
+            expect(data.params).to.not.exist();
+            expect(data.payload).to.not.exist();
+            expect(data.query).to.exist();
+            expect(data.state).to.exist();
+            expect(data.state).to.have.length(1);
+            expect(data.state.cookie).to.be.a.string();
+
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should inject cookies set in options', async () => {
+
+            server.route({ method: 'GET', path: '/test-get-cookies', handler: () => 'ok' });
+
+            const res = Funzz(server, Object.assign({ state: { cookie: Joi.number().required() } }, options));
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.path).to.be.equal('/test-get-cookies');
+            expect(data.method).to.be.equal('get');
+            expect(data.params).to.not.exist();
+            expect(data.payload).to.not.exist();
+            expect(data.query).to.exist();
+            expect(data.state).to.exist();
+            expect(data.state).to.have.length(1);
+            expect(data.state.cookie).to.be.a.number();
+
+            const response = await Funzz.inject(server, data);
             testResponse(response, 200);
         });
 
@@ -460,6 +559,7 @@ describe('Funzz', () => {
                 expect(data.params).to.not.exist();
                 expect(data.payload).to.not.exist();
                 expect(data.query).to.exist();
+                expect(data.state).to.not.exist();
                 expect(data.headers).to.not.exist();
             });
         });
@@ -480,6 +580,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.params).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.query).to.exist();
             expect(data.headers).to.exist();
             expect(data.headers).to.have.length(1);
@@ -516,6 +617,7 @@ describe('Funzz', () => {
             expect(data.method).to.be.equal('get');
             expect(data.params).to.not.exist();
             expect(data.payload).to.not.exist();
+            expect(data.state).to.not.exist();
             expect(data.query).to.exist();
             expect(data.query.id).to.be.string();
         });
@@ -1737,6 +1839,45 @@ describe('Funzz', () => {
             expect(payloads).to.include(data.query.name);
         });
 
+        it('should inject cookies set by server.state', () => {
+
+            server.route({ method: 'GET', path: '/test-routes-gen', handler: () => 'ok' });
+            server.state('cookie');
+
+            const route = server.table()[0];
+            const res = Funzz.generateRoute(server, route, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.path).to.be.equal(route.path);
+            expect(data.method).to.be.equal(route.method);
+            expect(data.params).to.not.exist();
+            expect(data.payload).to.not.exist();
+            expect(data.headers).to.not.exist();
+            expect(data.query).to.exist();
+            expect(data.state).to.exist();
+            expect(data.state).to.have.length(1);
+            expect(data.state.cookie).to.be.a.string();
+        });
+
+        it('should inject cookies set in options', () => {
+
+            server.route({ method: 'GET', path: '/test-routes-gen', handler: () => 'ok' });
+
+            const route = server.table()[0];
+            const res = Funzz.generateRoute(server, route, Object.assign({ state: { cookie: Joi.number().required() } }, options));
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.path).to.be.equal(route.path);
+            expect(data.method).to.be.equal(route.method);
+            expect(data.params).to.not.exist();
+            expect(data.payload).to.not.exist();
+            expect(data.headers).to.not.exist();
+            expect(data.query).to.exist();
+            expect(data.state).to.exist();
+            expect(data.state).to.have.length(1);
+            expect(data.state.cookie).to.be.a.number();
+        });
+
         it('should inject to server when automate is true', async () => {
 
             server.route({
@@ -1769,11 +1910,10 @@ describe('Funzz', () => {
 
     describe('inject', () => {
 
-        const server = Hapi.server();
-        server.route({ method: 'GET', path: '/test-inject', handler: () => 'ok' });
-
         it('should allow replace of injected data', async () => {
 
+            const server = Hapi.server();
+            server.route({ method: 'GET', path: '/test-inject', handler: () => 'ok' });
             const res = Funzz(server, { automate: false, permutations: 1 });
             expect(res).to.have.length(1);
             const record = res[0];
@@ -1790,6 +1930,157 @@ describe('Funzz', () => {
             });
 
             testResponse(response, 404);
+        });
+
+        it('should not add cookie headers if cookie state is empty', async () => {
+
+            const server = Hapi.server({ state: { strictHeader: false } });
+            const path = '/test-cookie-inject-no-headers';
+            const method = 'GET';
+            server.route({
+                method,
+                path,
+                handler: (request) => {
+
+                    expect(request.headers).to.not.contain('Cookie');
+                    return 'ok';
+                }, config: {
+                    validate: {
+                        headers: Joi.object({
+                            'user-agent': Joi.string(),
+                            host: Joi.string()
+                        })
+                    }
+                }
+            });
+
+            const record = {
+                path,
+                method,
+                state: {}
+            };
+            testResponse(await Funzz.inject(server, record), 200);
+        });
+
+        it('should correctly encode cookie stripping invalid chars in loose mode', async () => {
+
+            let parsedValue;
+            const server = Hapi.server({ state: { strictHeader: false } });
+            const path = '/test-cookie-inject';
+            const method = 'GET';
+            server.route({
+                method,
+                path,
+                handler: (request) => {
+
+                    expect(request.state.cookie).to.be.equal(parsedValue);
+                    return 'ok';
+                }
+            });
+
+            const record = {
+                path,
+                method,
+                state: {
+                    cookie: '"wierd=3$&co"o;kie!'
+                }
+            };
+            parsedValue = '"wierd=3$&co"okie!';
+            testResponse(await Funzz.inject(server, record), 200);
+            record.state.cookie = 'wierd=3$&co"o;kie!';
+            parsedValue = 'wierd=3$&co"okie!';
+            testResponse(await Funzz.inject(server, record), 200);
+            record.state.cookie = '"wierd=3$&co"o;kie!"';
+            parsedValue = 'wierd=3$&cookie!';
+            testResponse(await Funzz.inject(server, record), 200);
+        });
+
+        it('should correctly encode cookie stripping invalid chars in strict mode', async () => {
+
+            const server = Hapi.server({ state: { strictHeader: true } });
+            const path = '/test-cookie-inject';
+            const method = 'GET';
+            server.route({
+                method,
+                path,
+                handler: (request) => {
+
+                    expect(request.state.cookie).to.be.equal('wierd=3$&cookie!');
+                    return 'ok';
+                }
+            });
+
+            const record = {
+                path,
+                method,
+                state: {
+                    cookie: '"wierd=3$&co"o;kie!'
+                }
+            };
+            testResponse(await Funzz.inject(server, record), 200);
+        });
+
+        it('should correctly encode cookie by server.state settings', async () => {
+
+            const server = Hapi.server({ state: { strictHeader: true, encoding: 'base64' } });
+            const state = {};
+            const path = '/test-cookie-inject';
+            const method = 'GET';
+            server.route({
+                method,
+                path,
+                handler: (request) => {
+
+                    expect(request.state).to.be.equal(state);
+                    return 'ok';
+                }
+            });
+
+            const cookieDef = [
+                {
+                    name: 'none',
+                    options: { encoding: 'base64' },
+                    value: 'wierd=3$&cookie!'
+                },
+                {
+                    name: 'b64',
+                    options: { encoding: 'base64' },
+                    value: '"wierd=3$&co"o;kie!"'
+                },
+                {
+                    name: 'b64j',
+                    options: { encoding: 'base64json' },
+                    value: { 'su= per;" weird': '"wierd=3$&co"o;kie!"' }
+                },
+                {
+                    name: 'f',
+                    options: { encoding: 'form' },
+                    value: { 'su= per;" weird': '"wierd=3$&co"o;kie!"' }
+                },
+                {
+                    name: 'io',
+                    options: { encoding: 'iron', password: new Array(33).join('A') },
+                    value: { 'su= per;" weird': '"wierd=3$&co"o;kie!"' }
+                },
+                {
+                    name: 'is',
+                    options: { encoding: 'iron', password: new Array(33).join('B') },
+                    value: '"wierd=3$&co"o;kie!"'
+                }
+            ];
+
+            cookieDef.forEach((cookie) => {
+
+                server.state(cookie.name, cookie.options);
+                state[cookie.name] = cookie.value;
+            });
+
+            const record = {
+                path,
+                method,
+                state
+            };
+            testResponse(await Funzz.inject(server, record), 200);
         });
 
     });
