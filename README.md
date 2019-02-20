@@ -101,6 +101,8 @@ but you don't have to call server.start
 
 **automate**: automate the test if set to false will only return records array but will not actually run the test _default(true),_
 
+**routeMatcher**: RegExp to match against route path. only matching routes will be included _default(undefined)_
+
 **validateData**: if true will use the validation schema to assert the data and will throw an error if data is not valid  _default(false),_
 
 **permutations**: how many records to create for each route _default(10),_

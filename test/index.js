@@ -867,7 +867,7 @@ describe('Funzz', () => {
             }
 
             expect(error).to.exist();
-            expect(error.message.split('\n')).to.have.length(3);
+            expect(error.message.split('\n')).to.have.length(4);
         });
 
         it('should pass test if to response does not results in serer error', async () => {
