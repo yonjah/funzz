@@ -961,7 +961,7 @@ describe('Funzz', () => {
             const { string } = LoadFuzzDb(usePayloads);
 
             const payloads =  Object.keys(string).reduce((arr, len) => arr.concat(string[len]), []);
-            const options = { automate: false, usePayloads, permutations: 1};
+            const options = { automate: false, usePayloads, permutations: 1 };
             server.route({
                 method: 'GET',
                 path: '/test-string-payload',
