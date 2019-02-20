@@ -115,6 +115,8 @@ but you don't have to call server.start
 
 **usePayloads**: array of payloads to be loaded from assets Fuzz db files `['all', 'string.all', 'file.all', 'string.generic', 'string.sql', 'string.javascript', string.noSql', 'string.JSON', 'string.XSS', 'string.URI', 'string.userAgent', 'file.image', 'file.zip']` _default([])_
 
+**payloadsProbability**: Probability in percents to replace a payload 100 will replace all payloads, 0 will replace none _default(100)_
+
 **regexPayloadsAttempts**: if rule is a regular expression pattern try to find a payload that matches it _default(10)_
 
 **injectReplace**: function to allow you manipulate data before it is injected to the server _default((record, data) => data)_

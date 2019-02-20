@@ -961,7 +961,7 @@ describe('Funzz', () => {
             const { string } = LoadFuzzDb(usePayloads);
 
             const payloads =  Object.keys(string).reduce((arr, len) => arr.concat(string[len]), []);
-            const options = { automate: false, usePayloads, permutations: 1 };
+            const options = { automate: false, usePayloads, permutations: 1};
             server.route({
                 method: 'GET',
                 path: '/test-string-payload',
@@ -979,6 +979,64 @@ describe('Funzz', () => {
             expect(data.query).to.exist();
             expect(data.query.name).to.exist();
             expect(payloads).to.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should not replace string with payload when probability is 0', async () => {
+
+            const usePayloads = ['string.noSql'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const payloads =  Object.keys(string).reduce((arr, len) => arr.concat(string[len]), []);
+            const options = { automate: false, usePayloads, permutations: 1, payloadsProbability: 0 };
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: { name: Joi.string().required() }
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(data.query.name).to.exist();
+            expect(payloads).to.not.include(data.query.name);
+            const response = await Funzz.inject(server, data);
+            testResponse(response, 200);
+        });
+
+        it('should replace some strings with payload when probability is at 50%', async () => {
+
+            const usePayloads = ['string.noSql'];
+            const { string } = LoadFuzzDb(usePayloads);
+
+            const payloads =  Object.keys(string).reduce((arr, len) => arr.concat(string[len]), []);
+            const options = { automate: false, usePayloads, permutations: 1, payloadsProbability: 50 };
+            server.route({
+                method: 'GET',
+                path: '/test-string-payload',
+                handler: () => 'ok',
+                config: {
+                    validate: {
+                        query: Joi.object().pattern(/[a-z]{3,10}/, Joi.string()).length(10)
+                    }
+                }
+            });
+
+            const res = Funzz(server, options);
+            expect(res).to.have.length(1);
+            const data = res[0];
+            expect(data.query).to.exist();
+            expect(Object.keys(data.query)).to.have.length(10);
+            const includes = Object.keys(data.query).map((key) => payloads.includes(data.query[key]));
+            expect(includes).to.include(true);
+            expect(includes).to.include(false);
             const response = await Funzz.inject(server, data);
             testResponse(response, 200);
         });
