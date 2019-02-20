@@ -113,7 +113,7 @@ but you don't have to call server.start
 
 **state**: _Object('cookie_name': Joi.schema)_ | null state cookies to be fuzzed when no cookie validation was set on route. By default when no specific cookie validation was set to route a fuzzing will be created as a string value to all cookies that were defined by `server.state`. Set to null to not inject any cookies or to object where `key: schema` to inject specific cookies.
 
-**usePayloads**: array of payloads to be loaded from assets Fuzz db files `['all', 'string.all', 'file.all', 'string.generic', 'string.sql', 'string.noSql', 'string.JSON', 'string.XSS', 'string.URI', 'string.userAgent', 'file.image', 'file.zip']` _default([])_
+**usePayloads**: array of payloads to be loaded from assets Fuzz db files `['all', 'string.all', 'file.all', 'string.generic', 'string.sql', 'string.javascript', string.noSql', 'string.JSON', 'string.XSS', 'string.URI', 'string.userAgent', 'file.image', 'file.zip']` _default([])_
 
 **regexPayloadsAttempts**: if rule is a regular expression pattern try to find a payload that matches it _default(10)_
 
