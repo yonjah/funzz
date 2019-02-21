@@ -13,6 +13,8 @@ It is mostly used by me to automatically add fuzzing to my hapi test suites so s
 
 ## Usage 
 
+[slides](https://ca.non.co.il/funzz/index.html) from SecTalks meetup about funzz
+
 `Funzz` should work with any testing framework that exposes a  `describe` and `it` methods.
 Like mocha -
 ```js
