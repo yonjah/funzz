@@ -1,9 +1,9 @@
 'use strict';
 
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
 const Funzz = require('../lib');
-const Joi = require('joi');
-const Lab = require('lab');
+const Joi = require('@hapi/joi');
+const Lab = require('@hapi/lab');
 
 const { describe, it } = exports.lab = Lab.script();
 const secret = Math.random().toString(32); //value that should not be leaked

@@ -1,12 +1,12 @@
 'use strict';
 
 // Load modules
-const Lab        = require('lab');
+const Lab        = require('@hapi/lab');
 const Funzz      = require('../lib');
 const LoadFuzzDb = require('../lib/fuzzing-db');
-const Hapi       = require('hapi');
-const Joi        = require('joi');
-const { expect } = require('code');
+const Hapi       = require('@hapi/hapi');
+const Joi        = require('@hapi/joi');
+const { expect } = require('@hapi/code');
 
 // Test shortcuts
 

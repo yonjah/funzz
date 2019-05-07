@@ -1,8 +1,8 @@
 'use strict';
 
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
 const Funzz = require('../lib');
-const Lab = require('lab');
+const Lab = require('@hapi/lab');
 
 const { describe, it } = exports.lab = Lab.script();
 
