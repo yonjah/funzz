@@ -30,6 +30,16 @@ jobs:
         - RUN_TEST=true
 
     - stage: tests
+      node_js: 11
+      env:
+        - RUN_TEST=true
+
+    - stage: tests
+      node_js: 12
+      env:
+        - RUN_TEST=true
+
+    - stage: tests
       node_js: node
       env:
         - RUN_TEST=true
