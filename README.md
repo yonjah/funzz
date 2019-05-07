@@ -18,7 +18,7 @@ It is mostly used by me to automatically add fuzzing to my hapi test suites so s
 `Funzz` should work with any testing framework that exposes a  `describe` and `it` methods.
 Like mocha -
 ```js
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
 const Funzz = require('funzz');
 
 const server = Hapi.server();
@@ -28,7 +28,7 @@ Funzz(server);
 
 Or Lab -
 ```js
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
 const Funzz = require('funzz');
 const Lab = require('lab');
 
@@ -43,10 +43,10 @@ Funzz(server, { it, describe });
 Or you can even try and see that no secrets are leaked in the result.
 Here is a naive example making making sure secret is never leaked -
 ```js
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
 const Funzz = require('funzz');
-const Joi = require('joi');
-const Lab = require('lab');
+const Joi = require('@hapi/joi');
+const Lab = require('@hapi/lab');
 
 const { describe, it } = exports.lab = Lab.script();
 const secret = Math.random().toString(32); //value that should not be leaked
